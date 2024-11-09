@@ -1,5 +1,16 @@
 function updateReviews(data) {
   const { reviews, average_rating } = data;
+  
+  // If no reviews, remove review holders and show empty state
+  if (!reviews || reviews.length === 0) {
+    document.querySelectorAll('.reviews_holder').forEach(holder => holder.remove());
+    document.querySelectorAll('[when-review-filled]').forEach(element => element.remove());
+    document.querySelectorAll('[when-review-empty]').forEach(element => {
+      element.style.display = 'grid';
+    });
+    return;
+  }
+
   const totalReviews = reviews.length;
   const reviewsWithRating = reviews.filter(review => review.rating > 0);
   const recommendationPercentage = reviewsWithRating.length > 0
@@ -103,13 +114,3 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
 }
-
-// Usage remains the same
-fetch('https://assistant.workstatt.cloud/reviews/product/artemide-tolomeo-mini')
-  .then(response => response.json())
-  .then(data => {
-    updateReviews(data);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
