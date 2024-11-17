@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to update search results in the DOM
   function updateSearchResults(results) {
       if (!results || !results.length) {
-          resultsContainer.innerHTML = '<div class="search_produkte-holder">No results found</div>';
+          resultsContainer.innerHTML = '<div class="search_produkte-holder">Keine Ergebnisse gefunden.</div>';
           return;
       }
 
