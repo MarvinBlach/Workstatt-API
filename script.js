@@ -18,7 +18,7 @@ function updateReviews(data) {
     // Update average rating and total reviews
     const averageRatingElement = holder.querySelector('.text-size-large');
     if (averageRatingElement) {
-      averageRatingElement.innerHTML = `${average_rating.toFixed(1)} (<span hs-total-reviews="">${totalReviews}</span> Rezenzionen)`;
+      averageRatingElement.innerHTML = `${average_rating.toFixed(1)} (<span hs-total-reviews="">${totalReviews}</span> Bewertungen)`;
     }
   });
 
