@@ -38,7 +38,7 @@ function initializeChat() {
     const submitButton = document.querySelector('[hs-api-submit]');
     const chatHolder = document.querySelector('.ai_chat');
     const form = document.querySelector('.w-form');
-    const searchQuestions = document.querySelectorAll('[li-settings\\:text="BLOCK SEARCH TEXT"]');
+    const searchQuestions = document.querySelectorAll('[li-ai-copy]');
     const aiFragenElement = document.querySelector('[ai-fragen]');
 
     let messageHistory = [];
