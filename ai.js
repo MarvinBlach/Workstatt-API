@@ -102,18 +102,9 @@ const ChatUI = {
         const temp = document.createElement('div');
         temp.innerHTML = messageHTML;
         
-        // Get the message element and add the animation class
-        const messageElement = temp.firstElementChild;
-        messageElement.classList.add('message-fade-in');
-        
         // Add to chat
-        this.elements.chatHolder.appendChild(messageElement);
+        this.elements.chatHolder.appendChild(temp.firstElementChild);
         this.scrollToBottom();
-        
-        // Return a promise that resolves when the animation is complete
-        return new Promise(resolve => {
-            messageElement.addEventListener('animationend', () => resolve(), { once: true });
-        });
     },
 
     createUserMessageHTML(message) {
@@ -232,7 +223,7 @@ const ChatManager = {
             
             // Process messages sequentially with delay
             for (const msg of savedHistory) {
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 20));
                 if (msg.role === 'user') {
                     await ChatUI.addMessage(msg.content, true);
                 } else if (msg.role === 'assistant') {
@@ -321,64 +312,65 @@ const ChatManager = {
     },
 
     formatMessage(message) {
-        let productCount = 0;
         const products = [];
+        let counter = 1;
         
-        // First pass: collect all product JSONs
-        message.split(/({.*?})/g).forEach(part => {
-            if (part.trim().startsWith('{')) {
-                try {
-                    const jsonData = JSON.parse(part);
-                    products.push(jsonData);
-                } catch (e) {
-                    console.error('Error parsing JSON:', e);
+        // Extract and parse products
+        const jsonMatches = message.match(/\{[^{}]*\}/g);
+        jsonMatches?.forEach(jsonString => {
+            try {
+                const product = JSON.parse(jsonString);
+                if (product.type === 'product') {
+                    products.push(product);
                 }
+            } catch (e) {
+                console.error('Error parsing product JSON:', e);
             }
         });
-        
-        // Second pass: replace JSON with numbered references
-        let formattedMessage = message.replace(/({.*?})/g, () => {
-            productCount++;
-            return `<span class="product-reference-link" data-reference="${productCount}">[${productCount}]</span>`;
+
+        // Remove JSON objects and clean up the message
+        let cleanMessage = message
+            .replace(/\{[^{}]*\}/g, '')
+            // Remove all existing breaks
+            .replace(/<br>/g, '')
+            // Remove extra spaces
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // Replace image markdown with numbered references, putting breaks after the number
+        cleanMessage = cleanMessage.replace(/!\[.*?\]\(.*?\)\s*(\[\d+\])?/g, () => {
+            return `<span class="product-reference-link" data-reference="${counter}" style="color: var(--green);">[${counter++}]</span><br><br>`;
         });
-        
-        // Create separate HTML for products
+
+        // Create product HTML
         const productsHTML = products.map((product, index) => `
             <a href="#" class="ai_chat-agent-bubble-product w-inline-block" data-product-reference="${index + 1}">
-                <img src="https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg" 
+                <img src="${product.image}" 
                      loading="lazy" 
-                     alt="" 
+                     alt="${product.title}" 
                      class="search_produkte-img">
                 <div class="search_produkte-inner">
-                    <div>${product.name || 'Steelcase Product Name'}</div>
-                    <div>€735,00</div>
+                    <div>${product.title}</div>
                 </div>
             </a>
         `).join('');
-        
-        // Add click handlers after message is added to DOM
-        setTimeout(() => {
-            document.querySelectorAll('.product-reference-link').forEach((link, index) => {
-                link.addEventListener('click', () => {
-                    document.querySelectorAll('.ai_chat-agent-bubble-product').forEach(ref => {
-                        ref.classList.remove('highlighted');
-                    });
-                    
-                    const productElements = document.querySelectorAll('.ai_chat-agent-bubble-product');
-                    const productElement = productElements[index];
-                    if (productElement) {
-                        productElement.classList.add('highlighted');
-                        productElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }
-                });
+
+        // Only store the message once in history
+        if (this.messageHistory && !this.messageHistory.some(msg => 
+            msg.content === message && msg.role === "assistant"
+        )) {
+            this.messageHistory.push({
+                content: message.replace(/"/g, '\\"'),
+                role: "assistant"
             });
-        }, 0);
-        
-        // Return a single structure with the message and products
+            
+            CookieManager.set(this.messageHistory, 60);
+        }
+
         return `
             <div class="ai_chat-agent-bubble">
                 <div class="text-size-regular op_50">workstatt KI-Berater · vor weniger als 1 Minute</div>
-                <div class="text-size-regular">${this.parseMarkdown(formattedMessage)}</div>
+                <div class="text-size-regular">${this.parseMarkdown(cleanMessage)}</div>
             </div>
             <div class="product-list">${productsHTML}</div>
         `;
@@ -402,45 +394,4 @@ const ChatManager = {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => ChatManager.init());
-
-// Update the style with new colors and spacing
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .message-fade-in {
-        animation: fadeIn 0.3s ease forwards;
-        opacity: 0;
-    }
-
-    .product-reference-link {
-        color: #ff6a6a;
-        cursor: pointer;
-        transition: opacity 0.2s ease;
-    }
-
-    .product-reference-link:hover {
-        opacity: 0.7;
-    }
-    .ai_chat-agent-bubble-product.highlighted {
-        background-color: rgba(255, 106, 106, 0.1);
-        transition: background-color 0.2s ease;
-    }
-
-    .product-list {
-        gap: 0.5rem;
-        display: flex;
-        flex-direction: column;
-    }
-`;
-document.head.appendChild(style);
 
