@@ -219,14 +219,9 @@ const ChatManager = {
                 if (msg.role === 'user') {
                     ChatUI.addMessage(msg.content, true);
                 } else if (msg.role === 'assistant') {
-                    if (msg.formattedContent) {
-                        // Use the pre-formatted content if available
-                        ChatUI.addMessage(msg.formattedContent, false);
-                    } else {
-                        // Format the content if it's from an older version
-                        const formattedMessage = this.formatMessage(msg.content);
-                        ChatUI.addMessage(formattedMessage, false);
-                    }
+                    // Format the original content every time we load
+                    const formattedMessage = this.formatMessage(msg.content);
+                    ChatUI.addMessage(formattedMessage, false);
                 }
             });
         }
@@ -277,19 +272,17 @@ const ChatManager = {
     },
 
     async handleResponse(response) {
-        // Format the message before saving
-        const formattedMessage = this.formatMessage(response);
-        
-        // Add the formatted response to message history
+        // Add the original response to message history
         this.messageHistory.push({
-            content: response,  // Save the original response
-            formattedContent: formattedMessage,  // Save the formatted version
+            content: response,
             role: "assistant"
         });
         
+        // Save to cookie
         CookieManager.set(this.messageHistory, 60);
 
-        // Display the message
+        // Format and display the message
+        const formattedMessage = this.formatMessage(response);
         ChatUI.addMessage(formattedMessage, false);
     },
 
@@ -406,7 +399,6 @@ style.textContent = `
     .product-reference-link:hover {
         opacity: 0.7;
     }
-
     .ai_chat-agent-bubble-product.highlighted {
         background-color: rgba(255, 106, 106, 0.1);
         transition: background-color 0.2s ease;
@@ -419,3 +411,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
