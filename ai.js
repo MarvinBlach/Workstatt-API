@@ -95,10 +95,25 @@ const ChatUI = {
         this.elements.chatHolder.lastElementChild?.remove();
     },
 
-    addMessage(message, isUser = true) {
-        const html = isUser ? this.createUserMessageHTML(message) : this.createAgentMessageHTML(message);
-        this.elements.chatHolder.insertAdjacentHTML('beforeend', html);
+    async addMessage(message, isUser = true) {
+        const messageHTML = isUser ? this.createUserMessageHTML(message) : this.createAgentMessageHTML(message);
+        
+        // Create a temporary container
+        const temp = document.createElement('div');
+        temp.innerHTML = messageHTML;
+        
+        // Get the message element and add the animation class
+        const messageElement = temp.firstElementChild;
+        messageElement.classList.add('message-fade-in');
+        
+        // Add to chat
+        this.elements.chatHolder.appendChild(messageElement);
         this.scrollToBottom();
+        
+        // Return a promise that resolves when the animation is complete
+        return new Promise(resolve => {
+            messageElement.addEventListener('animationend', () => resolve(), { once: true });
+        });
     },
 
     createUserMessageHTML(message) {
@@ -206,7 +221,7 @@ const ChatManager = {
         }
     },
 
-    loadChatHistory() {
+    async loadChatHistory() {
         const savedHistory = CookieManager.get();
         console.log('Loading chat history:', savedHistory);
 
@@ -215,15 +230,16 @@ const ChatManager = {
             ChatUI.clearChat();
             ChatUI.hideSearchQuestions();
             
-            savedHistory.forEach(msg => {
+            // Process messages sequentially with delay
+            for (const msg of savedHistory) {
+                await new Promise(resolve => setTimeout(resolve, 100));
                 if (msg.role === 'user') {
-                    ChatUI.addMessage(msg.content, true);
+                    await ChatUI.addMessage(msg.content, true);
                 } else if (msg.role === 'assistant') {
-                    // Format the original content every time we load
                     const formattedMessage = this.formatMessage(msg.content);
-                    ChatUI.addMessage(formattedMessage, false);
+                    await ChatUI.addMessage(formattedMessage, false);
                 }
-            });
+            }
         }
     },
 
@@ -390,6 +406,22 @@ document.addEventListener('DOMContentLoaded', () => ChatManager.init());
 // Update the style with new colors and spacing
 const style = document.createElement('style');
 style.textContent = `
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message-fade-in {
+        animation: fadeIn 0.3s ease forwards;
+        opacity: 0;
+    }
+
     .product-reference-link {
         color: #ff6a6a;
         cursor: pointer;
