@@ -59,12 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function showSuccessMessage() {
         const successElement = document.querySelector('[frage-success]');
         if (successElement) {
-            // Hide the form
-            const formElement = document.querySelector('.submit_form-content');
-            if (formElement) {
-                formElement.style.display = 'none';
-            }
-            // Show success message
             successElement.style.display = 'flex';
         }
     }
