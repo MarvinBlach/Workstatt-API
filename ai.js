@@ -115,10 +115,7 @@ const ChatUI = {
     createAgentMessageHTML(message) {
         return `
             <div hs-api-agent-answer-holder="" class="ai_chat-agent-bubble-holder">
-                <div hs-api-agent-answer="" class="ai_chat-agent-bubble">
-                    <div class="text-size-regular op_50">workstatt KI-Berater · vor weniger als 1 Minute</div>
-                    <div class="text-size-regular">${message}</div>
-                </div>
+                ${message}
             </div>`;
     }
 };
@@ -222,11 +219,14 @@ const ChatManager = {
                 if (msg.role === 'user') {
                     ChatUI.addMessage(msg.content, true);
                 } else if (msg.role === 'assistant') {
-                    const messages = this.parseResponse(msg.content);
-                    messages.forEach((message, index) => {
-                        const displayText = this.formatMessage(message);
-                        ChatUI.addMessage(displayText, false);
-                    });
+                    if (msg.formattedContent) {
+                        // Use the pre-formatted content if available
+                        ChatUI.addMessage(msg.formattedContent, false);
+                    } else {
+                        // Format the content if it's from an older version
+                        const formattedMessage = this.formatMessage(msg.content);
+                        ChatUI.addMessage(formattedMessage, false);
+                    }
                 }
             });
         }
@@ -282,7 +282,8 @@ const ChatManager = {
         
         // Add the formatted response to message history
         this.messageHistory.push({
-            content: formattedMessage,
+            content: response,  // Save the original response
+            formattedContent: formattedMessage,  // Save the formatted version
             role: "assistant"
         });
         
@@ -311,7 +312,6 @@ const ChatManager = {
     },
 
     formatMessage(message) {
-        // Replace product references with numbered links
         let productCount = 0;
         const products = [];
         
@@ -341,7 +341,7 @@ const ChatManager = {
                      alt="" 
                      class="search_produkte-img">
                 <div class="search_produkte-inner">
-                    <div>Steelcase Product Name</div>
+                    <div>${product.name || 'Steelcase Product Name'}</div>
                     <div>€735,00</div>
                 </div>
             </a>
@@ -351,26 +351,26 @@ const ChatManager = {
         setTimeout(() => {
             document.querySelectorAll('.product-reference-link').forEach((link, index) => {
                 link.addEventListener('click', () => {
-                    // Remove any existing highlights
                     document.querySelectorAll('.ai_chat-agent-bubble-product').forEach(ref => {
                         ref.classList.remove('highlighted');
                     });
                     
-                    // Find and highlight the corresponding product
                     const productElements = document.querySelectorAll('.ai_chat-agent-bubble-product');
                     const productElement = productElements[index];
                     if (productElement) {
                         productElement.classList.add('highlighted');
-                        // Scroll the product into view
                         productElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }
                 });
             });
         }, 0);
         
-        // Return main message and products separately
+        // Return a single structure with the message and products
         return `
-            <div class="text-size-regular">${this.parseMarkdown(formattedMessage)}</div>
+            <div class="ai_chat-agent-bubble">
+                <div class="text-size-regular op_50">workstatt KI-Berater · vor weniger als 1 Minute</div>
+                <div class="text-size-regular">${this.parseMarkdown(formattedMessage)}</div>
+            </div>
             <div class="product-list">${productsHTML}</div>
         `;
     },
