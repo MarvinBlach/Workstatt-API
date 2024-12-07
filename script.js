@@ -43,7 +43,7 @@ function updateReviews(data) {
         </div>
       ` : ''}
       <div class="review_list-comment">
-        <div hs-review-heading="" class="text-size-large">${review.title}</div>
+        <div hs-review-heading="" class="heading-style-h3">${review.title}</div>
         <p hs-review-text="" class="text-size-regular">${review.content || 'Keine Bewertung verfügbar.'}</p>
         <div class="comment_wrapper">
           <div hs-initials="" class="comment_element">${getInitials(review.name)}</div>
