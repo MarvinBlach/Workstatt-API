@@ -1,6 +1,15 @@
 function updateReviews(data) {
   const { reviews = [], average_rating = 0 } = data;
   const totalReviews = reviews.length;
+  
+  // Don't show anything if there are no reviews
+  if (totalReviews === 0) {
+    document.querySelectorAll('.reviews_holder').forEach(holder => {
+      holder.classList.remove('is-loaded');
+    });
+    return;
+  }
+
   const reviewsWithRating = reviews.filter(review => review.rating > 0);
   const recommendationPercentage = reviewsWithRating.length > 0
       ? Math.round((reviewsWithRating.filter(review => review.rating === 5).length / reviewsWithRating.length) * 100)
@@ -90,6 +99,11 @@ function updateReviews(data) {
 
       reviewLists.forEach(reviewList => {
           reviewList.innerHTML = reviewsHTML;
+          // Find the parent reviews_holder and add is-loaded class
+          const reviewsHolder = reviewList.closest('.reviews_holder');
+          if (reviewsHolder) {
+              reviewsHolder.classList.add('is-loaded');
+          }
       });
   }
 
