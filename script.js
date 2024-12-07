@@ -82,9 +82,14 @@ function updateReviews(data) {
     </div>
   `).join('');
 
-  // Update all review lists
+  // Update all review lists and show the reviews holder
   document.querySelectorAll('.review_list').forEach(reviewList => {
     reviewList.innerHTML = reviewsHTML;
+    // Find the parent reviews_holder and add is-loaded class
+    const reviewsHolder = reviewList.closest('.reviews_holder');
+    if (reviewsHolder) {
+      reviewsHolder.classList.add('is-loaded');
+    }
   });
 }
 
