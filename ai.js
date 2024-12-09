@@ -378,8 +378,22 @@ const ChatManager = {
 
     parseMarkdown(text) {
         return text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/^- /gm, '• ')
+            // Bold text with breaks, including dash, colon, and period if present
+            .replace(/- \*\*(.*?)\*\*\./g, '<br><br><strong>- $1.</strong><br>')
+            .replace(/\*\*(.*?)\*\*\./g, '<br><br><strong>$1.</strong><br>')
+            .replace(/- \*\*(.*?)\*\*:/g, '<br><br><strong>- $1:</strong><br>')
+            .replace(/\*\*(.*?)\*\*:/g, '<br><br><strong>$1:</strong><br>')
+            .replace(/\*\*(.*?)\*\*/g, '<br><br><strong>$1</strong><br>')
+            // Bullet points
+            .replace(/^- /gm, '<br>• ')
+            // Numbered lists
+            .replace(/^\d+\.\s/gm, match => `<br>${match}`)
+            // Ensure line breaks before and after lists
+            .replace(/(<br>• [^\n]+)(?=\n|$)/g, '$1<br>')
+            .replace(/(<br>\d+\.\s[^\n]+)(?=\n|$)/g, '$1<br>')
+            // Paragraph breaks
+            .replace(/\n\n/g, '<br><br>')
+            // Line breaks
             .replace(/\n/g, '<br>');
     },
 
