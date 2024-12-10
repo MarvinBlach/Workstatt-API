@@ -180,6 +180,33 @@ const ChatManager = {
 
         ChatUI.elements.submitButton.addEventListener('click', (e) => this.handleSubmit(e));
         this.setupSearchQuestions();
+
+        // Add click handler for product references
+        ChatUI.elements.chatHolder.addEventListener('click', (e) => {
+            if (e.target.closest('.product-reference-link')) {
+                // Remove highlight from any previously highlighted product
+                document.querySelectorAll('.ai_chat-agent-bubble-product').forEach(el => {
+                    el.style.backgroundColor = '';
+                    el.style.transition = '';
+                });
+
+                const reference = e.target.closest('.product-reference-link').dataset.reference;
+                const productElement = document.querySelector(`.ai_chat-agent-bubble-product[data-product-reference="${reference}"]`);
+                if (productElement) {
+                    // Add highlight effect
+                    productElement.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+                    productElement.style.transition = 'background-color 0.3s ease';
+                    
+                    productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    e.preventDefault();
+
+                    // Remove highlight after 2 seconds
+                    setTimeout(() => {
+                        productElement.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }
+        });
     },
 
     setupSearchQuestions() {
