@@ -342,9 +342,11 @@ const ChatManager = {
             return `<span class="product-reference-link" data-reference="${counter}" style="color: var(--green);">[${counter++}]</span><br><br>`;
         });
 
-        // Create product HTML
+        // Updated product HTML with product URL
         const productsHTML = products.map((product, index) => `
-            <a href="#" class="ai_chat-agent-bubble-product w-inline-block" data-product-reference="${index + 1}">
+            <a href="https://www.workstatt.de/products/${product.handle}" 
+               class="ai_chat-agent-bubble-product w-inline-block" 
+               data-product-reference="${index + 1}">
                 <img src="${product.image}" 
                      loading="lazy" 
                      alt="${product.title}" 
@@ -378,7 +380,9 @@ const ChatManager = {
 
     parseMarkdown(text) {
         return text
-            // Bold text with breaks, including dash, colon, and period if present
+            // Numbered list with bold text (keep number with title)
+            .replace(/(\d+\.) \*\*(.*?)\*\*/g, '<br><br>$1 <strong>$2</strong>')
+            // Other bold text with breaks
             .replace(/- \*\*(.*?)\*\*\./g, '<br><br><strong>- $1.</strong><br>')
             .replace(/\*\*(.*?)\*\*\./g, '<br><br><strong>$1.</strong><br>')
             .replace(/- \*\*(.*?)\*\*:/g, '<br><br><strong>- $1:</strong><br>')
@@ -386,11 +390,8 @@ const ChatManager = {
             .replace(/\*\*(.*?)\*\*/g, '<br><br><strong>$1</strong><br>')
             // Bullet points
             .replace(/^- /gm, '<br>• ')
-            // Numbered lists
-            .replace(/^\d+\.\s/gm, match => `<br>${match}`)
             // Ensure line breaks before and after lists
             .replace(/(<br>• [^\n]+)(?=\n|$)/g, '$1<br>')
-            .replace(/(<br>\d+\.\s[^\n]+)(?=\n|$)/g, '$1<br>')
             // Paragraph breaks
             .replace(/\n\n/g, '<br><br>')
             // Line breaks
@@ -408,4 +409,3 @@ const ChatManager = {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => ChatManager.init());
-
