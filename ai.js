@@ -80,7 +80,7 @@ const ChatUI = {
         const loadingHTML = `
             <div hs-api-agent-answer-holder="" class="ai_chat-agent-bubble-holder">
                 <div hs-api-agent-answer="" class="ai_chat-agent-bubble">
-                    <div class="text-size-regular op_50">workstatt KI-Berater · vor weniger als 1 Minute</div>
+                    <div class="text-size-regular op_50">workstatt KI-Berater</div>
                     <div class="text-size-regular" style="display: flex; align-items: center; gap: 8px;">
                         Denke nach...
                         <div class="lds-dual-ring is-small"></div>
@@ -111,7 +111,7 @@ const ChatUI = {
         return `
             <div hs-api-user-question="" class="ai_chat-human-bubble-holder">
                 <div class="ai_chat-human-bubble">
-                    <div class="text-size-regular op_50">Du · vor weniger als 1 Minute</div>
+                    <div class="text-size-regular op_50">Du</div>
                     <div class="text-size-regular">${message}</div>
                 </div>
                 <img src="https://cdn.prod.website-files.com/66e15ba66b890988dcb296a0/6750792ac71b97d4d6a54dad_workstatt-human-polygon.svg" loading="lazy" alt="" class="ai_chat-human-poly">
