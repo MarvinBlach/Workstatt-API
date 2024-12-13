@@ -398,7 +398,7 @@ const ChatManager = {
 
         return `
             <div class="ai_chat-agent-bubble">
-                <div class="text-size-regular op_50">workstatt KI-Berater · vor weniger als 1 Minute</div>
+                <div class="text-size-regular op_50">workstatt KI-Berater</div>
                 <div class="text-size-regular">${this.parseMarkdown(cleanMessage)}</div>
             </div>
             <div class="product-list">${productsHTML}</div>
