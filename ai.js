@@ -306,18 +306,30 @@ const ChatManager = {
     },
 
     async handleResponse(response) {
+        console.log('Handling response:', response);
+        
         // Add the original response to message history
         this.messageHistory.push({
             content: response,
             role: "assistant"
         });
         
-        // Save to cookie
-        CookieManager.set(this.messageHistory, 60);
-
         // Format and display the message
         const formattedMessage = this.formatMessage(response);
-        ChatUI.addMessage(formattedMessage, false);
+        await ChatUI.addMessage(formattedMessage, false);
+
+        // Save to cookie after everything is processed
+        try {
+            console.log('Saving message history:', this.messageHistory);
+            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure everything is processed
+            CookieManager.set(this.messageHistory, 60);
+            
+            // Verify cookie was saved
+            const savedHistory = CookieManager.get();
+            console.log('Cookie content after save:', savedHistory);
+        } catch (error) {
+            console.error('Error saving cookie:', error);
+        }
     },
 
     parseResponse(response) {
@@ -406,23 +418,31 @@ const ChatManager = {
     },
 
     parseMarkdown(text) {
-        return text
-            // Numbered list with bold text (keep number with title)
+        let counter = 1;
+
+        // First handle the JSON and images to avoid interference
+        text = text.replace(/\{[^{}]*\}/g, '');
+        text = text.replace(/!\[.*?\]\(.*?\)/g, () => 
+            `<span class="product-reference-link" data-reference="${counter}" style="color: var(--green);">[${counter++}]</span>`
+        );
+
+        // Handle basic formatting
+        text = text
+            // Handle numbered items with bold (add breaks before)
             .replace(/(\d+\.) \*\*(.*?)\*\*/g, '<br><br>$1 <strong>$2</strong>')
-            // Other bold text with breaks
-            .replace(/- \*\*(.*?)\*\*\./g, '<br><br><strong>- $1.</strong><br>')
-            .replace(/\*\*(.*?)\*\*\./g, '<br><br><strong>$1.</strong><br>')
-            .replace(/- \*\*(.*?)\*\*:/g, '<br><br><strong>- $1:</strong><br>')
-            .replace(/\*\*(.*?)\*\*:/g, '<br><br><strong>$1:</strong><br>')
-            .replace(/\*\*(.*?)\*\*/g, '<br><br><strong>$1</strong><br>')
-            // Bullet points
-            .replace(/^- /gm, '<br>• ')
-            // Ensure line breaks before and after lists
-            .replace(/(<br>• [^\n]+)(?=\n|$)/g, '$1<br>')
-            // Paragraph breaks
-            .replace(/\n\n/g, '<br><br>')
-            // Line breaks
-            .replace(/\n/g, '<br>');
+            
+            // Handle dashed items with bold (add breaks before)
+            .replace(/- \*\*(.*?)\*\*/g, '<br><br>- <strong>$1</strong>')
+            
+            // Handle remaining bold text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            
+            // Clean up extra breaks
+            .replace(/(<br><br>)+/g, '<br><br>')
+            .replace(/^(<br><br>)/, '')
+            .trim();
+
+        return text;
     },
 
     async generateSessionId() {
