@@ -18,7 +18,7 @@
     const fullScoreElements = document.querySelectorAll('[hs-trust-score-full]');
     if (fullScoreElements.length > 0) {
       fullScoreElements.forEach(element => {
-        element.textContent = `${rating} von 5 Sternen bei Trusted Shop (Note: "Sehr gut")`;
+        element.textContent = `${rating} von 5 Sternen bei TrustedShops (Note "Sehr gut")`;
       });
     }
   }
